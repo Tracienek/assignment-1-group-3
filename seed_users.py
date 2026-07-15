@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from google.cloud import datastore
 
 
-PROJECT_ID = "assignment-1-ug-g3"
+PROJECT_ID = "my-sandbox-testing-501304"
 STUDENT_ID = "s1234567"          # sửa thành student ID thật của bạn
 FULL_NAME = "Firstname Lastname" # sửa thành tên thật của bạn
 
@@ -42,7 +42,7 @@ def create_initial_users() -> None:
                 "id": user_id,
                 "user_name": f"{FULL_NAME}{number}",
                 "password": passwords[number],
-                "image_url": f"digits/{number}.png",
+                "image_url": f"https://storage.googleapis.com/forum-images-2026/digits/{number}.png",
                 "created_at": datetime.now(timezone.utc),
             }
         )
