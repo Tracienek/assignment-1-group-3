@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Post</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- Back link arrow to profile page -->
+  <a href="{{ url_for('user_page') }}" class="back-link">
+    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12"></line>
+      <polyline points="12 19 5 12 12 5"></polyline>
+    </svg>
+    Back to profile
+  </a>
+
+  <!-- Modify post content form panel -->
+  <div class="post-form">
+    <h3>Edit post</h3>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" value="{{ post.subject }}" required>
+
+      <label for="message_text">Message</label>
+      <textarea id="message_text" name="message_text">{{ post.message_text }}</textarea>
+
+      <!-- Show current image attachment if it exists -->
+      {% if post.image_url %}
+        <label>Current Attachment Image</label>
+        <img class="current-image" src="{{ post.image_url }}" alt="current attached image">
+      {% endif %}
+
+      <label for="image">Replace image (optional)</label>
+      <input type="file" id="image" name="image" accept="image/*">
+
+      <button type="submit">Update</button>
+    </form>
+  </div>
+
+</body>
+</html>

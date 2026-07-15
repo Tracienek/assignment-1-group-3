@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Account</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Back button link -->
+  <a href="{{ url_for('forum') }}" class="back-link">
+    <i data-lucide="arrow-left" class="icon-sm"></i> Back to forum
+  </a>
+
+  <!-- Change password form -->
+  <div class="password-form">
+    <h3>Change password</h3>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="post">
+      <label for="old_password">Old password</label>
+      <input type="password" id="old_password" name="old_password" required>
+
+      <label for="new_password">New password</label>
+      <input type="password" id="new_password" name="new_password" required>
+
+      <button type="submit">Change</button>
+    </form>
+  </div>
+
+  <!-- User's posts list -->
+  <div class="post-list my-posts">
+    <h3>My posts</h3>
+    <div class="user-posts-list">
+      <!-- Loop through user posts -->
+      {% for post in posts %}
+        <div class="user-post-item">
+          <div class="user-post-info">
+            <strong class="user-post-title">{{ post.subject }}</strong>
+            <span class="user-post-time">{{ post.created_at }}</span>
+          </div>
+          <a href="{{ url_for('edit_post', post_id=post.id) }}" class="edit-btn">Edit</a>
+        </div>
+      {% else %}
+        <p class="empty-state">You haven't posted anything yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
