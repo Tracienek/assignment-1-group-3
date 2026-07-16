@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Assessment 1 - Task 2 BigQuery Results</title>
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 30px;
+                background: #f7f7f7;
+            }
+
+            h1 {
+                color: #222;
+            }
+
+            h2 {
+                margin-top: 40px;
+                color: #333;
+            }
+
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                background: white;
+                margin-bottom: 30px;
+            }
+
+            th,
+            td {
+                border: 1px solid #ccc;
+                padding: 8px 10px;
+                text-align: left;
+            }
+
+            th {
+                background: #eaeaea;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: auto;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>Assessment 1 - Task 2 BigQuery Results</h1>
+
+            <h2>Query 1: Top 10 Time Slots with Highest Trade Value</h2>
+            <table>
+                <tr>
+                    <th>Time Ref</th>
+                    <th>Trade Value</th>
+                </tr>
+                {% for row in result1 %}
+                <tr>
+                    <td>{{ row.time_ref }}</td>
+                    <td>{{ "{:,.2f}".format(row.trade_value) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <h2>Query 2: Top 40 Countries with Highest Trade Deficit Value</h2>
+            <table>
+                <tr>
+                    <th>Country Label</th>
+                    <th>Product Type</th>
+                    <th>Trade Deficit Value</th>
+                    <th>Status</th>
+                </tr>
+                {% for row in result2 %}
+                <tr>
+                    <td>{{ row.country_label }}</td>
+                    <td>{{ row.product_type }}</td>
+                    <td>{{ "{:,.2f}".format(row.trade_deficit_value) }}</td>
+                    <td>{{ row.status }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <h2>Query 3: Top 25 Services with Highest Trade Surplus Value</h2>
+            <table>
+                <tr>
+                    <th>Service Label</th>
+                    <th>Trade Surplus Value</th>
+                </tr>
+                {% for row in result3 %}
+                <tr>
+                    <td>{{ row.service_label }}</td>
+                    <td>{{ "{:,.2f}".format(row.trade_surplus_value) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </body>
+</html>
