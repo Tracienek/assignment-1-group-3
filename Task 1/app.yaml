@@ -1,6 +1,3 @@
 runtime: python312
 
 entrypoint: gunicorn -b :$PORT app:app
-
-env_variables:
-  SECRET_KEY: 1dab4af5cef9b6460c49ac7ebdf50dff5c6bd9ceac5eec7ebd7c1ea7829e8e38

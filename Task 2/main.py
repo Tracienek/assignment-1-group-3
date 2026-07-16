@@ -3,8 +3,8 @@ from google.cloud import bigquery
 
 app = Flask(__name__)
 
-PROJECT_ID = "assignment-1-ug-g3"
-DATASET = "assessment1_group3"
+PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT"]
+DATASET = os.environ.get("BIGQUERY_DATASET", "assessment1_group3")
 
 client = bigquery.Client(project=PROJECT_ID)
 
@@ -106,16 +106,21 @@ def index():
         LIMIT 25;
     """
 
-    result1 = run_query(query1)
-    result2 = run_query(query2)
-    result3 = run_query(query3)
+    try:
+        result1 = run_query(query1)
+        result2 = run_query(query2)
+        result3 = run_query(query3)
 
-    return render_template(
-        "index.html",
-        result1=result1,
-        result2=result2,
-        result3=result3
-    )
+        return render_template(
+            "index.html",
+            result1=result1,
+            result2=result2,
+            result3=result3,
+        )
+
+    except Exception:
+        app.logger.exception("BigQuery query failed")
+        return "Unable to load BigQuery data.", 500
 
 
 if __name__ == "__main__":
