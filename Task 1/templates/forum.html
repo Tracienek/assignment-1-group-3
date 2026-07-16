@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Forum</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <!-- Top navigation header bar -->
+  <div class="user-header-bar">
+    <div class="brand-title">
+      <a href="{{ url_for('forum') }}" style="text-decoration: none; color: inherit;">
+        <h3>🌐 Forum</h3>
+      </a>
+    </div>
+      
+    <!-- Profile and logout section -->
+    <div class="user-actions-group">
+      <a href="{{ url_for('user_page') }}" class="user-profile-tag" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px;">
+        <img class="avatar" src="{{ user.image_url }}" alt="{{ user.user_name }}" style="cursor: pointer;">
+        <span class="username-nav">{{ user.user_name }}</span>
+      </a>
+      <div class="action-divider"></div>
+      <a href="{{ url_for('logout') }}" class="logout-btn-ui">Logout</a>
+    </div>
+  </div>
+
+  <!-- Create new post form -->
+  <div class="post-form">
+    <h3>New post</h3>
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+        
+    <form method="post" enctype="multipart/form-data">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" placeholder="What's on your mind?" required>
+
+      <label for="message_text">Message</label>
+      <textarea id="message_text" name="message_text" placeholder="Write your message..."></textarea>
+
+      <!-- Image file upload -->
+      <label for="image">Attach an image (optional)</label>
+      <input type="file" id="image" name="image" accept="image/*">
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <!-- Main recent posts feed -->
+  <div class="post-list">
+    <h3>Recent posts</h3>
+    {% for post in posts %}
+      <div class="post-card">
+        <div class="post-header">
+          <img class="post-author-avatar avatar" src="{{ post.author_avatar }}" alt="user avatar">
+          <div class="post-header-meta">
+            <strong>{{ post.user_name }}</strong>
+            <span class="timestamp">{{ post.created_at.strftime('%b %d, %Y %I:%M %p') if post.created_at else '' }}</span>
+          </div>
+        </div>
+            
+        <h4>{{ post.subject }}</h4>
+        <p>{{ post.message_text }}</p>
+
+        <!-- Show attached image if exists -->
+        {% if post.image_url %}
+          <img class="post-attachment-img" src="{{ post.image_url }}" alt="attached post image" onclick="viewImage(this.src)">
+        {% endif %}
+      </div>
+    {% else %}
+      <p class="empty-state">No posts yet — be the first to share something.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Lightbox window for viewing images -->
+  <div id="lightboxPortal" class="lightbox-overlay" onclick="closeImage()">
+    <img id="lightboxImage" class="lightbox-img" alt="Enlarged visual attachment view">
+  </div>
+
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
