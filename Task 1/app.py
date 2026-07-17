@@ -119,7 +119,7 @@ def register():
     error = None
     if request.method == "POST":
         entered_name = request.form.get("name", "")
-        image_url = upload_image(request.files.get("image"), folder="profile")
+        image_url = upload_image(request.files.get("image"), folder="profiles")
         entered_id = request.form.get("id", "").strip()
         entered_password = request.form.get("password", "")
         entered_confirm_password = request.form.get("confirm_password", "")
