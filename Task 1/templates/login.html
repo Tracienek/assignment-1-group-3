@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Forum</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div>
+    <h1>LOGIN</h1>
+        {'<p style="color:red">' + error + '</p>' if error else ''}
+        <form method="post">
+        <input name="name" placeholder="Name"><br>
+        
+        <input name="id" placeholder="ID"><br>
+
+        <input name="password" type="password" placeholder="Password"><br>
+        <input name="confirm_password" type="password" placeholder="Confirm Password"><br>
+        
+        <button type="submit">Login</button>
+        <a href="{{ url_for('register') }}">Register</a>
+        </form>
+</div>
+
+</body>
+</html>

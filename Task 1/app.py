@@ -99,23 +99,48 @@ def login():
     """Handle verification routines for user credential validation and session mapping"""
     error = None
     if request.method == "POST":
+        entered_name = request.form.get("name", "")
         entered_id = request.form.get("id", "").strip()
         entered_password = request.form.get("password", "")
+        entered_confirm_password = request.form.get("confirm_password", "")
         user = get_user_by_id(entered_id)
-        if user is None or user["password"] != entered_password:
+        if entered_password != entered_confirm_password:
+            error = "Passwords do not match"
+        elif user is None or user["password"] != entered_password:
             error = "ID or password is invalid"
         else:
             session["user_id"] = user["id"]
             return redirect(url_for("forum"))
-    return f"""
-    <h3>STUB LOGIN</h3>
-    {'<p style="color:red">' + error + '</p>' if error else ''}
-    <form method="post">
-      <input name="id" placeholder="ID"><br>
-      <input name="password" type="password" placeholder="Password"><br>
-      <button type="submit">Login</button>
-    </form>
-    """
+    return render_template("login.html", error=error)
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """Handle new user registration and credential storage in Datastore"""
+    error = None
+    if request.method == "POST":
+        entered_name = request.form.get("name", "")
+        image_url = upload_image(request.files.get("image"), folder="posts")
+        entered_id = request.form.get("id", "").strip()
+        entered_password = request.form.get("password", "")
+        entered_confirm_password = request.form.get("confirm_password", "")
+        if entered_password != entered_confirm_password:
+            error = "Passwords do not match"
+        elif get_user_by_id(entered_id):
+            error = "The username already exists"
+        else:
+            key = ds_client.key("user")
+            user_entity = datastore.Entity(key=key)
+            user_entity.update(
+                {
+                    "id": entered_id,
+                    "user_name": entered_name,
+                    "password": entered_password,
+                    "image_url": image_url,
+                }
+            )
+            ds_client.put(user_entity)
+            return redirect(url_for("login"))
+    return render_template("register.html", error=error)
 
 @app.route("/forum", methods=["GET", "POST"])
 @login_required
