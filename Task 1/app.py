@@ -96,21 +96,21 @@ def login_required(view):
 @app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Handle verification routines for user credential validation and session mapping"""
     error = None
+
     if request.method == "POST":
-        entered_name = request.form.get("name", "")
         entered_id = request.form.get("id", "").strip()
         entered_password = request.form.get("password", "")
-        entered_confirm_password = request.form.get("confirm_password", "")
+
         user = get_user_by_id(entered_id)
-        if entered_password != entered_confirm_password:
-            error = "Passwords do not match"
-        elif user is None or user["password"] != entered_password:
+
+        if user is None or user.get("password") != entered_password:
             error = "ID or password is invalid"
         else:
+            session.clear()
             session["user_id"] = user["id"]
             return redirect(url_for("forum"))
+
     return render_template("login.html", error=error)
 
 @app.route("/register", methods=["GET", "POST"])
@@ -118,15 +118,13 @@ def register():
     """Handle new user registration and credential storage in Datastore"""
     error = None
     if request.method == "POST":
-        entered_name = request.form.get("name", "")
         image_url = upload_image(request.files.get("image"), folder="profiles")
         entered_id = request.form.get("id", "").strip()
         entered_password = request.form.get("password", "")
-        entered_confirm_password = request.form.get("confirm_password", "")
         if entered_password != entered_confirm_password:
             error = "Passwords do not match"
         elif get_user_by_id(entered_id):
-            error = "The username already exists"
+            error = "The ID already exists"
         else:
             key = ds_client.key("user")
             user_entity = datastore.Entity(key=key)
