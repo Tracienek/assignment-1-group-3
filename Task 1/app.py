@@ -7,11 +7,20 @@ from google.cloud import datastore, storage
 # Initialize Flask application
 app = Flask(__name__)
 # Secure cookies/sessions using environment variable or local dev fallback string
-app.secret_key = os.environ.get("SECRET_KEY") or "dev-secret-change-me"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+# Limit file upload to a maximum of 5 MB
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
 # Google Cloud infrastructure configurations
 PROJECT_ID = "my-sandbox-testing-501304"
 BUCKET_NAME = "forum-images-2026"
+
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+}
 
 # Initialize Google Cloud Client Libraries
 ds_client = datastore.Client(project=PROJECT_ID)
@@ -33,16 +42,70 @@ def update_user_password(user_entity, new_password):
 
 
 def upload_image(file_storage, folder="posts"):
-    """Upload multipart form images to Google Cloud Storage and return public URLs"""
+    if not file_storage or not file_storage.filename:
+        return None
+
+    if file_storage.mimetype not in ALLOWED_IMAGE_TYPES:
+        raise ValueError("Unsupported image type")
+
+    extension_map = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/gif": "gif",
+        "image/webp": "webp",
+    }
+
+    extension = extension_map[file_storage.mimetype]
+    blob_name = f"{folder}/{uuid.uuid4().hex}.{extension}"
+
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(blob_name)
+
+    blob.upload_from_file(
+        file_storage,
+        content_type=file_storage.mimetype,
+    )
+
+    return f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_name}"
     if not file_storage or file_storage.filename == "":
         return None
+
     bucket = storage_client.bucket(BUCKET_NAME)
     ext = file_storage.filename.rsplit(".", 1)[-1]
-    # Use unique UUID hex strings as filenames to prevent file overwrite collisions
     blob_name = f"{folder}/{uuid.uuid4().hex}.{ext}"
     blob = bucket.blob(blob_name)
-    blob.upload_from_file(file_storage, content_type=file_storage.content_type)
+    blob.upload_from_file(
+        file_storage,
+        content_type=file_storage.content_type
+    )
+
     return f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_name}"
+
+
+def delete_storage_image(image_url):
+    if not image_url:
+        return
+
+    expected_prefix = f"https://storage.googleapis.com/{BUCKET_NAME}/"
+
+    if not image_url.startswith(expected_prefix):
+        return
+
+    blob_name = image_url[len(expected_prefix):]
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(blob_name)
+
+    try:
+        blob.delete()
+    except Exception:
+        app.logger.exception(
+            "Could not delete old image: %s",
+            blob_name
+        )
+
+
+def create_post(subject, message_text, image_url, user_id, user_name):
+    ...
 
 
 def create_post(subject, message_text, image_url, user_id, user_name):
@@ -83,12 +146,10 @@ def get_post_by_id(post_id):
     return ds_client.get(ds_client.key("post", int(post_id)))
 
 
-def update_post(post_entity, subject, message_text, image_url=None):
-    """Overwrite properties of an existing post entity and push revisions online"""
+def update_post(post_entity, subject, message_text, image_url):
     post_entity["subject"] = subject
     post_entity["message_text"] = message_text
-    if image_url:
-        post_entity["image_url"] = image_url
+    post_entity["image_url"] = image_url
     post_entity["created_at"] = datetime.now(timezone.utc)
     ds_client.put(post_entity)
 
@@ -127,37 +188,62 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """Handle new user registration and credential storage in Datastore"""
     error = None
+
     if request.method == "POST":
-        image_url = upload_image(request.files.get("image"), folder="profiles")
         entered_id = request.form.get("id", "").strip()
+        entered_name = request.form.get("user_name", "").strip()
         entered_password = request.form.get("password", "")
+        entered_confirm_password = request.form.get("confirm_password", "")
+        image_file = request.files.get("image")
+
         if entered_password != entered_confirm_password:
             error = "Passwords do not match"
+
         elif get_user_by_id(entered_id):
             error = "The ID already exists"
-        else:
-            key = ds_client.key("user")
-            user_entity = datastore.Entity(key=key)
-            user_entity.update(
-                {
-                    "id": entered_id,
-                    "user_name": entered_name,
-                    "password": entered_password,
-                    "image_url": image_url,
-                }
-            )
-            ds_client.put(user_entity)
-            return redirect(url_for("login"))
-    return render_template("register.html", error=error)
 
+        else:
+            username_query = ds_client.query(kind="user")
+            username_query.add_filter("user_name", "=", entered_name)
+
+            if list(username_query.fetch(limit=1)):
+                error = "The username already exists"
+            else:
+                try:
+                    image_url = upload_image(image_file, folder="profiles")
+
+                    key = ds_client.key("user")
+                    user_entity = datastore.Entity(key=key)
+                    user_entity.update(
+                        {
+                            "id": entered_id,
+                            "user_name": entered_name,
+                            "password": entered_password,
+                            "image_url": image_url,
+                            "created_at": datetime.now(timezone.utc),
+                        }
+                    )
+
+                    ds_client.put(user_entity)
+                    return redirect(url_for("login"))
+
+                except Exception:
+                    app.logger.exception("Registration failed")
+                    error = "Registration failed. Please try again."
+
+    return render_template("register.html", error=error)
 
 @app.route("/forum", methods=["GET", "POST"])
 @login_required
 def forum():
     """Render forum posts using optimized batch data query handling"""
     current_user = get_user_by_id(session["user_id"])
+
+    if current_user is None:
+        session.clear()
+        return redirect(url_for("login"))
+
     error = None
 
     if request.method == "POST":
@@ -177,7 +263,8 @@ def forum():
                 )
                 return redirect(url_for("forum"))
             except Exception:
-                error = "Image upload failed. Check storage access and try again."
+                app.logger.exception("Post creation failed")
+                error = "Post creation failed. Please try again."
 
     raw_posts = get_latest_posts(limit=10)
 
@@ -226,21 +313,14 @@ def edit_post(post_id):
             image_file = request.files.get("image")
             image_url = None
 
-            # 1. Processing a new multi-part file layout override payload
             if image_file and image_file.filename:
                 image_url = upload_image(image_file, folder="posts")
-            # 2. User has not deleted the attachment; carry forward the layout URI
-            elif not delete_image_flag:
+            elif delete_image_flag:
+                image_url = None
+            else:
                 image_url = post.get("image_url")
 
-            # Update the post text and image URL (if applicable)
             update_post(post, subject, message_text, image_url)
-
-            # 3. Handle deletion processing parameters explicitly within the datastore entity layer
-            if delete_image_flag and not (image_file and image_file.filename):
-                post["image_url"] = None 
-                ds_client.put(post)
-
             return redirect(url_for("forum"))
 
     return render_template("edit_post.html", post=post, error=error)
@@ -249,43 +329,88 @@ def edit_post(post_id):
 @app.route("/user", methods=["GET", "POST"])
 @login_required
 def user_page():
-    """Handle credential revisions and compile isolated author post layouts"""
     current_user = get_user_by_id(session["user_id"])
+
+    if current_user is None:
+        session.clear()
+        return redirect(url_for("login"))
+
     error = None
     username_error = None
 
     if request.method == "POST":
         form_type = request.form.get("form_type")
 
-        # Handle Username Updates
+        # Update username
         if form_type == "update_username":
-            new_username = request.form.get("new_username", "").strip()
+            new_username = request.form.get(
+                "new_username",
+                ""
+            ).strip()
+
             if not new_username:
                 username_error = "Username cannot be empty"
-            elif len(new_username) < 2 or len(new_username) > 40:
-                username_error = "Username must be between 2 and 40 characters"
-            else:
-                current_user["user_name"] = new_username
-                ds_client.put(current_user)
-                return redirect(url_for("forum"))
 
-        # Handle Password Changes
+            elif len(new_username) < 2 or len(new_username) > 40:
+                username_error = (
+                    "Username must be between 2 and 40 characters"
+                )
+
+            else:
+                query = ds_client.query(kind="user")
+                query.add_filter(
+                    "user_name",
+                    "=",
+                    new_username
+                )
+                existing_users = list(query.fetch(limit=1))
+
+                if (
+                    existing_users
+                    and existing_users[0]["id"]
+                    != current_user["id"]
+                ):
+                    username_error = "The username already exists"
+
+                else:
+                    current_user["user_name"] = new_username
+                    ds_client.put(current_user)
+
+                    user_posts = get_posts_by_user(
+                        current_user["id"]
+                    )
+
+                    for post in user_posts:
+                        post["user_name"] = new_username
+
+                    if user_posts:
+                        ds_client.put_multi(user_posts)
+
+                    return redirect(url_for("forum"))
+
+        # Change password
         elif form_type == "change_password":
             old_password = request.form.get("old_password")
             new_password = request.form.get("new_password")
+
             if current_user["password"] != old_password:
                 error = "The old password is incorrect"
+
             else:
-                update_user_password(current_user, new_password)
+                update_user_password(
+                    current_user,
+                    new_password
+                )
                 session.clear()
                 return redirect(url_for("login"))
 
     raw_my_posts = get_posts_by_user(session["user_id"])
     my_posts = []
-    for p_entity in raw_my_posts:
-        p_data = dict(p_entity)
-        p_data["id"] = p_entity.key.id
-        my_posts.append(p_data)
+
+    for post_entity in raw_my_posts:
+        post_data = dict(post_entity)
+        post_data["id"] = post_entity.key.id
+        my_posts.append(post_data)
 
     return render_template(
         "user.html",
@@ -294,7 +419,6 @@ def user_page():
         error=error,
         username_error=username_error,
     )
-
 
 @app.route("/logout")
 def logout():
