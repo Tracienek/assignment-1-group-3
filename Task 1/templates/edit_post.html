@@ -1,48 +1,58 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Edit Post</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
+  <div class="centered-form-wrapper">
+    <div class="edit-post-container">
+      <!-- Navigate back to the user's profile page -->
+      <a href="{{ url_for('user_page') }}" class="back-link">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+          stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg> Back to profile
+      </a>
 
-  <!-- Back link arrow to profile page -->
-  <a href="{{ url_for('user_page') }}" class="back-link">
-    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12"></line>
-      <polyline points="12 19 5 12 12 5"></polyline>
-    </svg>
-    Back to profile
-  </a>
+      <!-- Form for updating existing post content -->
+      <div class="post-form">
+        <h3>Edit post</h3>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <form method="post" enctype="multipart/form-data">
+          <!-- Tracks if the user wants to remove the existing image -->
+          <input type="hidden" id="delete_image" name="delete_image" value="false">
 
-  <!-- Modify post content form panel -->
-  <div class="post-form">
-    <h3>Edit post</h3>
-    {% if error %}
-      <p class="error">{{ error }}</p>
-    {% endif %}
-    
-    <form method="post" enctype="multipart/form-data">
-      <label for="subject">Subject</label>
-      <input type="text" id="subject" name="subject" value="{{ post.subject }}" required>
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" name="subject" value="{{ post.subject }}" required autocomplete="off">
 
-      <label for="message_text">Message</label>
-      <textarea id="message_text" name="message_text">{{ post.message_text }}</textarea>
+          <label for="message_text">Message</label>
+          <textarea id="message_text" name="message_text">{{ post.message_text }}</textarea>
 
-      <!-- Show current image attachment if it exists -->
-      {% if post.image_url %}
-        <label>Current Attachment Image</label>
-        <img class="current-image" src="{{ post.image_url }}" alt="current attached image">
-      {% endif %}
+          <!-- Area to preview the current image or a new selected one -->
+          <label>Attachment Image</label>
+          <div id="previewBox" class="preview-box mb-16 {{ 'visible' if post.image_url else 'hidden' }}">
+            <img id="previewImg" class="preview-img" src="{{ post.image_url or '' }}" alt="Attachment Preview">
+            <button type="button" class="preview-remove" onclick="clearEditFormImage()">&times;</button>
+          </div>
 
-      <label for="image">Replace image (optional)</label>
-      <input type="file" id="image" name="image" accept="image/*">
+          <!-- File selector for updating or adding a new image -->
+          <label for="image">{{ 'Replace image' if post.image_url else 'Add image' }} (optional)</label>
+          <input type="file" id="image" name="image" accept="image/*" onchange="handleEditImageSelect(event)">
+          <div class="form-action-container">
+            <button type="submit">Update</button>
+          </div>
+        </form>
 
-      <button type="submit">Update</button>
-    </form>
+      </div>
+    </div>
   </div>
-
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
+
 </html>

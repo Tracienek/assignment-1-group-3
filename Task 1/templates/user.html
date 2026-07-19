@@ -1,53 +1,113 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My Account</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link class="abc" rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
 
-  <!-- Back button link -->
-  <a href="{{ url_for('forum') }}" class="back-link">
-    <i data-lucide="arrow-left" class="icon-sm"></i> Back to forum
-  </a>
+<body class="user-layout">
 
-  <!-- Change password form -->
-  <div class="password-form">
-    <h3>Change password</h3>
-    {% if error %}<p class="error">{{ error }}</p>{% endif %}
-    <form method="post">
-      <label for="old_password">Old password</label>
-      <input type="password" id="old_password" name="old_password" required>
+  <div class="main-layout">
+    <!-- Navigate back to the forum page -->
+    <a href="{{ url_for('forum') }}" class="back-link">
+      <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+        stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg> Back to forum
+    </a>
 
-      <label for="new_password">New password</label>
-      <input type="password" id="new_password" name="new_password" required>
+    <!-- Main Stacked Layout Grid Container -->
+    <div class="account-grid">
+      <div class="settings-row">
 
-      <button type="submit">Change</button>
-    </form>
-  </div>
+        <!-- Profile Details (Update Username) -->
+        <div class="password-form">
+          <h3>👤 Profile Detail</h3>
+          <p class="text-muted mt-12">This is how you'll appear to others on the forum.</p>
 
-  <!-- User's posts list -->
-  <div class="post-list my-posts">
-    <h3>My posts</h3>
-    <div class="user-posts-list">
-      <!-- Loop through user posts -->
-      {% for post in posts %}
-        <div class="user-post-item">
-          <div class="user-post-info">
-            <strong class="user-post-title">{{ post.subject }}</strong>
-            <span class="user-post-time">{{ post.created_at }}</span>
-          </div>
-          <a href="{{ url_for('edit_post', post_id=post.id) }}" class="edit-btn">Edit</a>
+          {% if username_error %}
+          <p class="error">{{ username_error }}</p>
+          {% endif %}
+
+          <form method="post">
+            <input type="hidden" name="form_type" value="update_username">
+
+            <label for="new_username">Username</label>
+            <input type="text" id="new_username" name="new_username" value="{{ user.user_name }}" required
+              autocomplete="off">
+
+            <button class="btn" type="submit">Change</button>
+          </form>
         </div>
-      {% else %}
-        <p class="empty-state">You haven't posted anything yet.</p>
-      {% endfor %}
+
+        <!-- Security Settings (Change Password) -->
+        <div class="password-form">
+          <h3>🔑 Security Settings</h3>
+          <p style="color: var(--color-muted); font-size: 0.82rem; margin-bottom: 12px; line-height: 1.4;">
+            Keep your account security credentials updated.
+          </p>
+
+          {% if error %}
+          <p class="error">{{ error }}</p>
+          {% endif %}
+
+          <form method="post">
+            <input type="hidden" name="form_type" value="change_password">
+
+            <label for="old_password">Old password</label>
+            <input type="password" id="old_password" name="old_password" placeholder="••••••" required>
+
+            <label for="new_password">New password</label>
+            <input type="password" id="new_password" name="new_password" placeholder="••••••" required>
+
+            <button class="btn" type="submit">Change</button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Activity Logs Container -->
+      <div class="post-list my-posts history-section">
+        <h3>📝 Activity History</h3>
+        <div class="user-posts-list">
+          {% for post in posts %}
+          <div class="history-row-item">
+            <!-- Standard horizontal arrangement inside flex row -->
+            <div class="history-meta-box">
+              <strong class="user-post-title">{{ post.subject }}</strong>
+              <span class="history-item-time">
+                {{ post.created_at.strftime('%b %d, %Y %I:%M %p') if post.created_at else '' }}
+              </span>
+
+              <!-- Hover Preview Tooltip Card Block -->
+              <div class="history-floating-tooltip">
+                <p class="history-tooltip-text">
+                  {{ post.message_text or 'No message text provided.' }}
+                </p>
+                {% if post.image_url %}
+                <img src="{{ post.image_url }}" alt="Preview" class="history-image-contained">
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Edit Action Anchor Pin -->
+            <a href="{{ url_for('edit_post', post_id=post.id) }}" class="edit-btn">Edit</a>
+          </div>
+          {% else %}
+          <p class="empty-state no-border-bg">You haven't posted anything yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
     </div>
   </div>
 
   <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
+
 </html>
