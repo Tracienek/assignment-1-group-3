@@ -215,9 +215,8 @@ def edit_post(post_id):
 
             # 3. Handle deletion processing parameters explicitly within the datastore entity layer
             if delete_image_flag and not (image_file and image_file.filename):
-                if "image_url" in post:
-                    del post["image_url"]
-                    ds_client.put(post)
+                post["image_url"] = None 
+                ds_client.put(post)
 
             return redirect(url_for("forum"))
 
