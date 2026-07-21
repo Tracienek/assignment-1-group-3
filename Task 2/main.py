@@ -22,11 +22,16 @@ def index():
     query1 = f"""
         SELECT
             time_ref,
-            SUM(value) AS trade_value
+            SUM(
+                CASE
+                    WHEN account IN ('Imports', 'Exports') THEN value
+                    ELSE 0
+                END
+            ) AS trade_value
         FROM `{PROJECT_ID}.{DATASET}.trade`
         GROUP BY time_ref
         ORDER BY trade_value DESC
-        LIMIT 10;
+        LIMIT 10
     """
 
     query2 = f"""

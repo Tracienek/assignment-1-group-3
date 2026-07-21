@@ -71,6 +71,8 @@
                         <label
                             for="image_trigger"
                             class="pointer d-flex align-center"
+                            aria-label="Choose an image for the post"
+                            title="Choose image"
                         >
                             <i class="fa-solid fa-image text-white"></i>
                         </label>
@@ -78,7 +80,10 @@
                 </div>
 
                 <!-- Expandable form container -->
-                <div id="composerFormContent" class="composer-form-content">
+                <div
+                    id="composerFormContent"
+                    class="composer-form-content {{ 'visible' if error else '' }}"
+                >
                     <div class="composer-form-inner">
                         {% if error %}
                         <p class="error">{{ error }}</p>
@@ -124,6 +129,7 @@
                                     type="button"
                                     class="preview-remove"
                                     onclick="clearComposerImage()"
+                                    aria-label="Remove selected image"
                                 >
                                     &times;
                                 </button>
@@ -159,10 +165,9 @@
                         />
                         <div class="post-header-meta">
                             <strong>{{ post.user_name }}</strong>
-                            <span class="timestamp"
-                                >{{ post.created_at.strftime('%b %d, %Y %I:%M
-                                %p') if post.created_at else '' }}</span
-                            >
+                            <span class="timestamp">
+                                {{ post.created_at | vn_datetime }}
+                            </span>
                         </div>
                     </div>
 
@@ -205,6 +210,7 @@
                 id="lightboxImage"
                 class="lightbox-img"
                 alt="Enlarged visual attachment view"
+                onclick="event.stopPropagation()"
             />
         </div>
 

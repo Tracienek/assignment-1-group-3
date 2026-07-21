@@ -180,8 +180,7 @@
                                 </strong>
 
                                 <span class="history-item-time">
-                                    {{ post.created_at.strftime('%b %d, %Y %I:%M
-                                    %p') if post.created_at else '' }}
+                                    {{ post.created_at | vn_datetime }}
                                 </span>
 
                                 <!-- Hover preview -->

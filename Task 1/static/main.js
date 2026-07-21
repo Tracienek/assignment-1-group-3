@@ -133,6 +133,12 @@ document.addEventListener("submit", (event) => {
     }
 });
 
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        closeImage();
+    }
+});
+
 function enableUsernameEdit() {
     const input = document.getElementById("new_username");
     const editButton = document.getElementById("editUsernameBtn");

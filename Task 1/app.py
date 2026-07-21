@@ -1,5 +1,5 @@
 import os, uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session
 from google.cloud import datastore, storage
@@ -10,6 +10,20 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 # Limit file upload to a maximum of 5 MB
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
+
+VIETNAM_TIMEZONE = timezone(timedelta(hours=7))
+
+@app.template_filter("vn_datetime")
+def vn_datetime(value):
+    if value is None:
+        return ""
+
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+
+    vietnam_time = value.astimezone(VIETNAM_TIMEZONE)
+
+    return vietnam_time.strftime("%b %d, %Y %I:%M %p")
 
 # Google Cloud infrastructure configurations
 PROJECT_ID = "assignment-1-ug-g3"
@@ -132,10 +146,16 @@ def get_post_by_id(post_id):
 
 
 def update_post(post_entity, subject, message_text, image_url):
+    now = datetime.now(timezone.utc)
+
     post_entity["subject"] = subject
     post_entity["message_text"] = message_text
     post_entity["image_url"] = image_url
-    post_entity["created_at"] = datetime.now(timezone.utc)
+    post_entity["updated_at"] = datetime.now(timezone.utc)
+
+    post_entity["created_at"] = now
+    post_entity["updated_at"] = now
+
     ds_client.put(post_entity)
 
 
