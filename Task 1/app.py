@@ -182,7 +182,10 @@ def register():
         entered_confirm_password = request.form.get("confirm_password", "")
         image_file = request.files.get("image")
 
-        if entered_password != entered_confirm_password:
+        if not image_file or not image_file.filename:
+            error = "User image is required"
+
+        elif entered_password != entered_confirm_password:
             error = "Passwords do not match"
 
         elif get_user_by_id(entered_id):
@@ -193,7 +196,7 @@ def register():
             username_query.add_filter("user_name", "=", entered_name)
 
             if list(username_query.fetch(limit=1)):
-                error = "The username already exists"
+                error = "The username already exists"   
             else:
                 try:
                     image_url = upload_image(image_file, folder="profiles")
@@ -300,7 +303,24 @@ def edit_post(post_id):
 
             if image_file and image_file.filename:
                 old_image_url = post.get("image_url")
-                image_url = upload_image(image_file, folder="posts")
+
+                try:
+                    image_url = upload_image(image_file, folder="posts")
+                except ValueError:
+                    error = "Unsupported image type"
+                    return render_template(
+                        "edit_post.html",
+                        post=post,
+                        error=error,
+                    )
+                except Exception:
+                    app.logger.exception("Post image upload failed")
+                    error = "Image upload failed. Please try again."
+                    return render_template(
+                        "edit_post.html",
+                        post=post,
+                        error=error,
+                    )
 
                 if old_image_url:
                     delete_storage_image(old_image_url)
