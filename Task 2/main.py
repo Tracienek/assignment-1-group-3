@@ -1,9 +1,11 @@
+import os
+
 from flask import Flask, render_template
 from google.cloud import bigquery
 
 app = Flask(__name__)
 
-PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT"]
+PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "assignment-1-ug-g3")
 DATASET = os.environ.get("BIGQUERY_DATASET", "assessment1_group3")
 
 client = bigquery.Client(project=PROJECT_ID)

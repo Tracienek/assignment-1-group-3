@@ -1,7 +1,11 @@
 runtime: python312
+service: task2
 
 entrypoint: gunicorn -b :$PORT main:app
 
 handlers:
     - url: /.*
       script: auto
+
+env_variables:
+    BIGQUERY_DATASET: "assessment1_group3"

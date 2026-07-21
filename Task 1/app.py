@@ -12,14 +12,15 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 
 # Google Cloud infrastructure configurations
-PROJECT_ID = "my-sandbox-testing-501304"
-BUCKET_NAME = "forum-images-2026"
+PROJECT_ID = "assignment-1-ug-g3"
+BUCKET_NAME = "assignment-1-ug-g3-forum-images"
 
 ALLOWED_IMAGE_TYPES = {
     "image/jpeg",
     "image/png",
     "image/gif",
     "image/webp",
+    "image/avif",
 }
 
 # Initialize Google Cloud Client Libraries
@@ -53,6 +54,7 @@ def upload_image(file_storage, folder="posts"):
         "image/png": "png",
         "image/gif": "gif",
         "image/webp": "webp",
+        "image/avif": "avif",
     }
 
     extension = extension_map[file_storage.mimetype]
@@ -67,20 +69,7 @@ def upload_image(file_storage, folder="posts"):
     )
 
     return f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_name}"
-    if not file_storage or file_storage.filename == "":
-        return None
-
-    bucket = storage_client.bucket(BUCKET_NAME)
-    ext = file_storage.filename.rsplit(".", 1)[-1]
-    blob_name = f"{folder}/{uuid.uuid4().hex}.{ext}"
-    blob = bucket.blob(blob_name)
-    blob.upload_from_file(
-        file_storage,
-        content_type=file_storage.content_type
-    )
-
-    return f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_name}"
-
+    
 
 def delete_storage_image(image_url):
     if not image_url:
@@ -102,10 +91,6 @@ def delete_storage_image(image_url):
             "Could not delete old image: %s",
             blob_name
         )
-
-
-def create_post(subject, message_text, image_url, user_id, user_name):
-    ...
 
 
 def create_post(subject, message_text, image_url, user_id, user_name):
@@ -314,8 +299,17 @@ def edit_post(post_id):
             image_url = None
 
             if image_file and image_file.filename:
+                old_image_url = post.get("image_url")
                 image_url = upload_image(image_file, folder="posts")
+
+                if old_image_url:
+                    delete_storage_image(old_image_url)
             elif delete_image_flag:
+                old_image_url = post.get("image_url")
+
+                if old_image_url:
+                    delete_storage_image(old_image_url)
+
                 image_url = None
             else:
                 image_url = post.get("image_url")
