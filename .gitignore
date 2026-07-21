@@ -1,11 +1,23 @@
-venv/
-.venv/
-.venv312/
-**/venv/
-**/.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Local environment and credentials
 .env
-.gcloudignore
-.git
-.gitignore
+.env.*
+service-account.json
+credentials.json
+*service-account*.json
+*credentials*.json
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
