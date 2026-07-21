@@ -1,126 +1,213 @@
 <!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Forum</title>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='style.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+    </head>
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Forum</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
+    <body class="forum-page">
+        <div class="main-layout">
+            <!-- Top navigation header bar -->
+            <div class="user-header-bar">
+                <div class="brand-title">
+                    <a
+                        href="{{ url_for('forum') }}"
+                        class="text-decoration-none color-inherit"
+                    >
+                        <h3>Forum</h3>
+                    </a>
+                </div>
 
-<body>
-
-  <div class="main-layout">
-    <!-- Top navigation header bar -->
-    <div class="user-header-bar">
-      <div class="brand-title">
-        <a href="{{ url_for('forum') }}" class="text-decoration-none color-inherit">
-          <h3>🌐 Forum</h3>
-        </a>
-      </div>
-
-      <!-- Profile and logout section -->
-      <div class="user-actions-group">
-        <a href="{{ url_for('user_page') }}"
-          class="user-profile-tag text-decoration-none color-inherit d-flex align-center gap-10">
-          <img class="avatar pointer" src="{{ user.image_url }}" alt="{{ user.user_name }}">
-          <span class="username-nav">{{ user.user_name }}</span>
-        </a>
-        <div class="action-divider"></div>
-        <a href="{{ url_for('logout') }}" class="logout-btn-ui">Logout</a>
-      </div>
-    </div>
-
-    <!-- Composer block -->
-    <div class="composer-panel">
-      <div class="composer-trigger-bar">
-        <!-- Clicking the placeholder text or avatar expands the composer text window -->
-        <div class="composer-trigger-left flex-1 pointer" onclick="toggleComposer()">
-          <img class="avatar" src="{{ user.image_url }}" alt="{{ user.user_name }}">
-          <span>Hey {{ user.user_name.split(' ')[0] }}, got something to share?</span>
-        </div>
-
-        <!-- Inline Media Quick-Trigger Action Area -->
-        <div class="composer-btn-toggle">
-          <label for="image_trigger" class="pointer d-flex align-center">
-            <i class="fa-solid fa-image text-white"></i>
-          </label>
-        </div>
-      </div>
-
-      <!-- Expandable form container -->
-      <div id="composerFormContent" class="composer-form-content">
-        <div class="composer-form-inner">
-          {% if error %}
-          <p class="error">{{ error }}</p>
-          {% endif %}
-
-          <form method="post" enctype="multipart/form-data">
-            <!-- Hidden file input controlled by the icon -->
-            <input type="file" id="image_trigger" name="image" accept="image/*" style="display: none;"
-              onchange="handleImageQuickSelect(event)">
-
-            <label for="subject">Subject</label>
-            <input type="text" id="subject" name="subject" placeholder="What's on your mind?" required
-              autocomplete="off">
-
-            <label for="message_text">Message</label>
-            <textarea id="message_text" name="message_text" placeholder="Write your message..."></textarea>
-
-            <!-- Real-time Preview Pane -->
-            <div id="previewBox" class="preview-box">
-              <img id="previewImg" class="preview-img" src="" alt="Attachment Preview">
-              <button type="button" class="preview-remove" onclick="clearComposerImage()">&times;</button>
+                <!-- Profile and logout section -->
+                <div class="user-actions-group">
+                    <a
+                        href="{{ url_for('user_page') }}"
+                        class="user-profile-tag text-decoration-none color-inherit d-flex align-center gap-10"
+                    >
+                        <img
+                            class="avatar pointer"
+                            src="{{ user.image_url }}"
+                            alt="{{ user.user_name }}"
+                        />
+                        <span class="username-nav">{{ user.user_name }}</span>
+                    </a>
+                    <div class="action-divider"></div>
+                    <a href="{{ url_for('logout') }}" class="logout-btn-ui"
+                        >Logout</a
+                    >
+                </div>
             </div>
 
-            <div class="composer-actions">
-              <button type="button" class="btn btn-secondary" onclick="closeComposerReset()">Cancel</button>
-              <button class="btn btn-submit" type="submit">Submit</button>
+            <!-- Composer block -->
+            <div class="composer-panel">
+                <div class="composer-trigger-bar">
+                    <!-- Clicking the placeholder text or avatar expands the composer text window -->
+                    <div
+                        class="composer-trigger-left flex-1 pointer"
+                        onclick="toggleComposer()"
+                    >
+                        <img
+                            class="avatar"
+                            src="{{ user.image_url }}"
+                            alt="{{ user.user_name }}"
+                        />
+                        <span
+                            >Hey {{ user.user_name.split(' ')[0] }}, got
+                            something to share?</span
+                        >
+                    </div>
+
+                    <!-- Inline Media Quick-Trigger Action Area -->
+                    <div class="composer-btn-toggle">
+                        <label
+                            for="image_trigger"
+                            class="pointer d-flex align-center"
+                        >
+                            <i class="fa-solid fa-image text-white"></i>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Expandable form container -->
+                <div id="composerFormContent" class="composer-form-content">
+                    <div class="composer-form-inner">
+                        {% if error %}
+                        <p class="error">{{ error }}</p>
+                        {% endif %}
+
+                        <form method="post" enctype="multipart/form-data">
+                            <!-- Hidden file input controlled by the icon -->
+                            <input
+                                type="file"
+                                id="image_trigger"
+                                name="image"
+                                accept="image/*"
+                                style="display: none"
+                                onchange="handleImageQuickSelect(event)"
+                            />
+
+                            <label for="subject">Subject</label>
+                            <input
+                                type="text"
+                                id="subject"
+                                name="subject"
+                                placeholder="What's on your mind?"
+                                required
+                                autocomplete="off"
+                            />
+
+                            <label for="message_text">Message</label>
+                            <textarea
+                                id="message_text"
+                                name="message_text"
+                                placeholder="Write your message..."
+                            ></textarea>
+
+                            <!-- Real-time Preview Pane -->
+                            <div id="previewBox" class="preview-box">
+                                <img
+                                    id="previewImg"
+                                    class="preview-img"
+                                    src=""
+                                    alt="Attachment Preview"
+                                />
+                                <button
+                                    type="button"
+                                    class="preview-remove"
+                                    onclick="clearComposerImage()"
+                                >
+                                    &times;
+                                </button>
+                            </div>
+
+                            <div class="composer-actions">
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    onclick="closeComposerReset()"
+                                >
+                                    Cancel
+                                </button>
+                                <button class="btn btn-submit" type="submit">
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-          </form>
+
+            <!-- Main recent posts feed -->
+            <div class="post-list">
+                <h3>Recent posts</h3>
+                {% for post in posts %}
+                <div class="post-card">
+                    <div class="post-header">
+                        <img
+                            class="post-author-avatar avatar"
+                            src="{{ post.author_avatar or 'https://storage.googleapis.com/forum-images-2026/digits/0.png' }}"
+                            alt="user avatar"
+                        />
+                        <div class="post-header-meta">
+                            <strong>{{ post.user_name }}</strong>
+                            <span class="timestamp"
+                                >{{ post.created_at.strftime('%b %d, %Y %I:%M
+                                %p') if post.created_at else '' }}</span
+                            >
+                        </div>
+                    </div>
+
+                    <h4>{{ post.subject }}</h4>
+                    <p>{{ post.message_text }}</p>
+
+                    <!-- Show attached image if exists -->
+                    {% if post.image_url %}
+                    <div
+                        class="fb-image-container"
+                        onclick="
+                            viewImage(
+                                this.querySelector('.post-attachment-img').src,
+                            )
+                        "
+                    >
+                        <img
+                            class="post-attachment-img"
+                            src="{{ post.image_url }}"
+                            alt="attached post image"
+                        />
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="empty-state">
+                    No posts yet. Be the first to share something.
+                </p>
+                {% endfor %}
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Main recent posts feed -->
-    <div class="post-list">
-      <h3>Recent posts</h3>
-      {% for post in posts %}
-      <div class="post-card">
-        <div class="post-header">
-          <img class="post-author-avatar avatar"
-            src="{{ post.author_avatar or 'https://storage.googleapis.com/forum-images-2026/digits/0.png' }}"
-            alt="user avatar">
-          <div class="post-header-meta">
-            <strong>{{ post.user_name }}</strong>
-            <span class="timestamp">{{ post.created_at.strftime('%b %d, %Y %I:%M %p') if post.created_at else ''
-              }}</span>
-          </div>
+        <!-- Lightbox window for viewing images -->
+        <div
+            id="lightboxPortal"
+            class="lightbox-overlay"
+            onclick="closeImage()"
+        >
+            <img
+                id="lightboxImage"
+                class="lightbox-img"
+                alt="Enlarged visual attachment view"
+            />
         </div>
 
-        <h4>{{ post.subject }}</h4>
-        <p>{{ post.message_text }}</p>
-
-        <!-- Show attached image if exists -->
-        {% if post.image_url %}
-        <div class="fb-image-container" onclick="viewImage(this.querySelector('.post-attachment-img').src)">
-          <img class="post-attachment-img" src="{{ post.image_url }}" alt="attached post image">
-        </div>
-        {% endif %}
-      </div>
-      {% else %}
-      <p class="empty-state">No posts yet. Be the first to share something.</p>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Lightbox window for viewing images -->
-  <div id="lightboxPortal" class="lightbox-overlay" onclick="closeImage()">
-    <img id="lightboxImage" class="lightbox-img" alt="Enlarged visual attachment view">
-  </div>
-
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
-</body>
-
+        <script src="{{ url_for('static', filename='main.js') }}"></script>
+    </body>
 </html>
