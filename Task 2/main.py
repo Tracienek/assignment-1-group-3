@@ -43,32 +43,34 @@ def index():
             t.status
         FROM `{PROJECT_ID}.{DATASET}.trade` AS t
         JOIN `{PROJECT_ID}.{DATASET}.countries` AS c
-            ON t.country_code = c.country_code
-        WHERE t.time_ref BETWEEN 201301 AND 201512
-          AND t.product_type = 'Goods'
-          AND t.status = 'F'
+            ON CAST(t.country_code AS STRING)
+            = CAST(c.country_code AS STRING)
+        WHERE SAFE_CAST(t.time_ref AS INT64)
+            BETWEEN 201301 AND 201512
+        AND t.product_type = 'Goods'
+        AND t.status = 'F'
         GROUP BY
             c.country_label,
             t.product_type,
             t.status
         ORDER BY trade_deficit_value DESC
-        LIMIT 40;
+        LIMIT 40
     """
 
     query3 = f"""
         WITH top_time_slots AS (
             SELECT
-                time_ref,
+                SAFE_CAST(time_ref AS INT64) AS time_ref,
                 SUM(value) AS trade_value
             FROM `{PROJECT_ID}.{DATASET}.trade`
-            GROUP BY time_ref
+            GROUP BY 1
             ORDER BY trade_value DESC
             LIMIT 10
         ),
 
         top_deficit_countries AS (
             SELECT
-                country_code,
+                CAST(country_code AS STRING) AS country_code,
                 SUM(
                     CASE
                         WHEN account = 'Imports' THEN value
@@ -77,10 +79,11 @@ def index():
                     END
                 ) AS trade_deficit_value
             FROM `{PROJECT_ID}.{DATASET}.trade`
-            WHERE time_ref BETWEEN 201301 AND 201512
-              AND product_type = 'Goods'
-              AND status = 'F'
-            GROUP BY country_code
+            WHERE SAFE_CAST(time_ref AS INT64)
+                BETWEEN 201301 AND 201512
+            AND product_type = 'Goods'
+            AND status = 'F'
+            GROUP BY 1
             ORDER BY trade_deficit_value DESC
             LIMIT 40
         )
@@ -96,16 +99,15 @@ def index():
             ) AS trade_surplus_value
         FROM `{PROJECT_ID}.{DATASET}.trade` AS t
         JOIN top_time_slots AS ts
-            ON t.time_ref = ts.time_ref
+            ON SAFE_CAST(t.time_ref AS INT64) = ts.time_ref
         JOIN top_deficit_countries AS tc
-            ON t.country_code = tc.country_code
+            ON CAST(t.country_code AS STRING) = tc.country_code
         JOIN `{PROJECT_ID}.{DATASET}.services` AS s
             ON CAST(t.code AS STRING) = CAST(s.code AS STRING)
         WHERE t.product_type = 'Services'
-        GROUP BY
-            s.service_label
+        GROUP BY s.service_label
         ORDER BY trade_surplus_value DESC
-        LIMIT 25;
+        LIMIT 25
     """
 
     try:
