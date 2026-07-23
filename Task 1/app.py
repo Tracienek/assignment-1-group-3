@@ -31,7 +31,7 @@ def vn_datetime(value):
     return vietnam_time.strftime("%b %d, %Y %I:%M %p")
 
 # Google Cloud infrastructure configurations
-PROJECT_ID = "assignment-1-ug-g3"
+PROJECT_ID = "my-sandbox-testing-501304"
 BUCKET_NAME = "forum-images-2026" # TODO: Change back to main bucket 
 # BUCKET_NAME = "assignment-1-ug-g3-forum-images"
 
@@ -193,15 +193,45 @@ def login():
 
         user = get_user_by_id(entered_id)
 
-        bytes_entered_password = entered_password.encode("utf-8")
-        is_valid_password = bcrypt.checkpw(bytes_entered_password, user.get("password"))
-
-        if user is None or not is_valid_password:
+        if user is None:
             error = "ID or password is invalid"
         else:
-            session.clear()
-            session["user_id"] = user["id"]
-            return redirect(url_for("forum"))
+            # 1. Fetch password from Datastore entity securely
+            stored_password = user.get("password", "")
+
+            # 2. Convert to string safely to check format prefix signatures
+            if isinstance(stored_password, bytes):
+                stored_password_str = stored_password.decode('utf-8')
+            else:
+                stored_password_str = str(stored_password)
+
+            # 3. Detect if the password is an active Bcrypt hash or an unhashed seed string
+            is_hashed = (
+                stored_password_str.startswith("$2a$") or 
+                stored_password_str.startswith("$2b$") or 
+                stored_password_str.startswith("$2y$")
+            )
+
+            if is_hashed:
+                try:
+                    # Verify modern encrypted user registrations using bytes format matching
+                    is_valid_password = bcrypt.checkpw(
+                        entered_password.encode('utf-8'), 
+                        stored_password_str.encode('utf-8')
+                    )
+                except ValueError:
+                    is_valid_password = False
+            else:
+                # Fallback to text check for seeding accounts
+                is_valid_password = (stored_password_str == entered_password)
+
+            # 4. Log user in if the password matches
+            if not is_valid_password:
+                error = "ID or password is invalid"
+            else:
+                session.clear()
+                session["user_id"] = user["id"]
+                return redirect(url_for("forum"))
 
     return render_template("login.html", error=error)
 
