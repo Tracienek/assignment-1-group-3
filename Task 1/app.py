@@ -31,7 +31,7 @@ def vn_datetime(value):
     return vietnam_time.strftime("%b %d, %Y %I:%M %p")
 
 # Google Cloud infrastructure configurations
-PROJECT_ID = "assignment-1-ug-g3"
+PROJECT_ID = "my-sandbox-testing-501304"
 BUCKET_NAME = "forum-images-2026" # TODO: Change back to main bucket 
 # BUCKET_NAME = "assignment-1-ug-g3-forum-images"
 
