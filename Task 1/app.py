@@ -194,7 +194,9 @@ def login():
         user = get_user_by_id(entered_id)
 
         bytes_entered_password = entered_password.encode("utf-8")
-        is_valid_password = bcrypt.checkpw(bytes_entered_password, user.get("password"))
+
+        current_password = user.get("password")
+        is_valid_password = bcrypt.checkpw(bytes_entered_password, current_password)
 
         if user is None or not is_valid_password:
             error = "ID or password is invalid"
