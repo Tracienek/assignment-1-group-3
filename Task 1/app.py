@@ -3,6 +3,11 @@ from datetime import datetime, timezone, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session
 from google.cloud import datastore, storage
+import bcrypt
+
+
+# Bcrypt hash
+salt = bcrypt.gensalt()
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -52,7 +57,10 @@ def get_user_by_id(user_id):
 
 def update_user_password(user_entity, new_password):
     """Update a user entity's password property string and save to Datastore"""
-    user_entity["password"] = new_password
+    
+    hashed_new_password = bcrypt.hashpw(new_password, salt)
+
+    user_entity["password"] = hashed_new_password
     ds_client.put(user_entity)
 
 
@@ -182,7 +190,9 @@ def login():
 
         user = get_user_by_id(entered_id)
 
-        if user is None or user.get("password") != entered_password:
+        is_valid_password = bcrypt.checkpw(entered_password, user.get("password"))
+
+        if user is None or not is_valid_password:
             error = "ID or password is invalid"
         else:
             session.clear()
@@ -208,6 +218,9 @@ def register():
         elif entered_password != entered_confirm_password:
             error = "Passwords do not match"
 
+        elif len(entered_password) < 8:
+            error = "Password must be at least 8 characters long"
+
         elif get_user_by_id(entered_id):
             error = "The ID already exists"
 
@@ -221,13 +234,15 @@ def register():
                 try:
                     image_url = upload_image(image_file, folder="profiles")
 
+                    hashed_password = bcrypt.hashpw(entered_password, salt)
+
                     key = ds_client.key("user")
                     user_entity = datastore.Entity(key=key)
                     user_entity.update(
                         {
                             "id": entered_id,
                             "user_name": entered_name,
-                            "password": entered_password,
+                            "password": hashed_password,
                             "image_url": image_url,
                             "created_at": datetime.now(timezone.utc),
                         }
@@ -429,6 +444,8 @@ def user_page():
 
             if current_user["password"] != old_password:
                 error = "The old password is incorrect"
+            elif len(new_password) < 8:
+                error = "Password must be at least 8 characters long"
 
             else:
                 update_user_password(
