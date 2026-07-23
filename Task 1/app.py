@@ -32,8 +32,8 @@ def vn_datetime(value):
 
 # Google Cloud infrastructure configurations
 PROJECT_ID = "assignment-1-ug-g3"
-# BUCKET_NAME = "forum-images-2026" # TODO: Change back to main bucket 
-BUCKET_NAME = "assignment-1-ug-g3-forum-images"
+BUCKET_NAME = "forum-images-2026" # TODO: Change back to main bucket 
+# BUCKET_NAME = "assignment-1-ug-g3-forum-images"
 
 ALLOWED_IMAGE_TYPES = {
     "image/jpeg",
