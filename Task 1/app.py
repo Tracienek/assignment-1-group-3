@@ -475,19 +475,36 @@ def user_page():
 
         # Change password
         elif form_type == "change_password":
-            old_password = request.form.get("old_password")
-            new_password = request.form.get("new_password")
+            old_password = request.form.get("old_password", "")
+            new_password = request.form.get("new_password", "")
 
-            if current_user["password"] != old_password:
+            # Retrieve stored password and handle bytes vs string
+            stored_password = current_user.get("password", "")
+            if isinstance(stored_password, bytes):
+                stored_password_str = stored_password.decode("utf-8")
+            else:
+                stored_password_str = str(stored_password)
+
+            # Check if the stored password is a bcrypt hash
+            is_hashed = stored_password_str.startswith(("$2a$", "$2b$", "$2y$"))
+
+            if is_hashed:
+                try:
+                    is_valid = bcrypt.checkpw(
+                        old_password.encode("utf-8"), 
+                        stored_password_str.encode("utf-8")
+                    )
+                except ValueError:
+                    is_valid = False
+            else:
+                is_valid = (stored_password_str == old_password)
+
+            if not is_valid:
                 error = "The old password is incorrect"
             elif len(new_password) < 8:
                 error = "Password must be at least 8 characters long"
-
             else:
-                update_user_password(
-                    current_user,
-                    new_password
-                )
+                update_user_password(current_user, new_password)
                 session.clear()
                 return redirect(url_for("login"))
 
