@@ -32,6 +32,7 @@ def vn_datetime(value):
 
 # Google Cloud infrastructure configurations
 PROJECT_ID = "assignment-1-ug-g3"
+# BUCKET_NAME = "forum-images-2026" # TODO: Change back to main bucket 
 BUCKET_NAME = "assignment-1-ug-g3-forum-images"
 
 ALLOWED_IMAGE_TYPES = {
@@ -58,7 +59,9 @@ def get_user_by_id(user_id):
 def update_user_password(user_entity, new_password):
     """Update a user entity's password property string and save to Datastore"""
     
-    hashed_new_password = bcrypt.hashpw(new_password, salt)
+    bytes_new_password = new_password.encode("utf-8")
+
+    hashed_new_password = bcrypt.hashpw(bytes_new_password, salt)
 
     user_entity["password"] = hashed_new_password
     ds_client.put(user_entity)
@@ -190,7 +193,8 @@ def login():
 
         user = get_user_by_id(entered_id)
 
-        is_valid_password = bcrypt.checkpw(entered_password, user.get("password"))
+        bytes_entered_password = entered_password.encode("utf-8")
+        is_valid_password = bcrypt.checkpw(bytes_entered_password, user.get("password"))
 
         if user is None or not is_valid_password:
             error = "ID or password is invalid"
@@ -234,7 +238,9 @@ def register():
                 try:
                     image_url = upload_image(image_file, folder="profiles")
 
-                    hashed_password = bcrypt.hashpw(entered_password, salt)
+                    bytes_entered_password = entered_password.encode("utf-8")
+
+                    hashed_password = bcrypt.hashpw(bytes_entered_password, salt)
 
                     key = ds_client.key("user")
                     user_entity = datastore.Entity(key=key)
