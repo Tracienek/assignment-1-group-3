@@ -888,6 +888,233 @@ label[for="image_trigger"]:focus-visible {
     margin-top: 8px;
 }
 
+/* ==================================================
+   OTHER USER PAGE ONLY
+   Chỉ áp dụng cho /users/<user_id>
+   ================================================== */
+
+.other-user-page .post-list.my-posts.history-section {
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+/* Activity History heading */
+.other-user-page .history-section > h3 {
+    margin: 0;
+    padding-bottom: 16px;
+
+    border-bottom: 1px solid var(--color-border);
+
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-align: center;
+}
+
+/* List containing the posts */
+.other-user-page .history-section .user-posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* One history row */
+.other-user-page .history-section .history-row-item {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    padding: 16px 8px;
+    margin-top: 8px;
+
+    background: transparent;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+
+    transition:
+        background-color 0.2s ease,
+        border-radius 0.2s ease;
+}
+
+.other-user-page .history-section .history-row-item:last-child {
+    border-bottom: none;
+}
+
+.other-user-page .history-section .history-row-item:hover {
+    background: rgba(99, 102, 241, 0.04);
+    border-radius: var(--radius-sm);
+}
+
+/* Subject and time */
+.other-user-page .history-section .history-meta-box {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: center;
+    gap: 20px;
+
+    width: 100%;
+    min-width: 0;
+
+    cursor: pointer;
+}
+
+/* Post subject */
+.other-user-page .history-section .user-post-title {
+    min-width: 0;
+
+    color: var(--color-ink);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.5;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    transition: color 0.2s ease;
+}
+
+.other-user-page .history-section .history-row-item:hover .user-post-title {
+    color: var(--color-accent);
+}
+
+/* Date and time pill */
+.other-user-page .history-section .history-item-time {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    min-width: max-content;
+    padding: 6px 14px;
+
+    color: var(--color-muted);
+    background: #f1f5f9;
+    border-radius: var(--radius-full);
+
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* Hover post preview */
+.other-user-page .history-section .history-floating-tooltip {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 9999;
+
+    visibility: hidden;
+    width: 300px;
+    max-width: calc(100vw - 60px);
+    padding: 14px;
+
+    color: #ffffff;
+    background: var(--color-ink);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-5px);
+
+    transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease,
+        transform 0.2s ease;
+}
+
+.other-user-page
+    .history-section
+    .history-meta-box:hover
+    .history-floating-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Tooltip arrow */
+.other-user-page .history-section .history-floating-tooltip::before {
+    content: "";
+
+    position: absolute;
+    bottom: 100%;
+    left: 24px;
+
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent var(--color-ink) transparent;
+}
+
+/* Tooltip message */
+.other-user-page .history-section .history-tooltip-text {
+    margin: 0;
+
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.5;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* Tooltip image */
+.other-user-page .history-section .history-image-contained {
+    display: block;
+
+    width: 100%;
+    max-height: 180px;
+    margin-top: 10px;
+
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+/* Empty activity */
+.other-user-page .history-section .empty-state {
+    margin: 0;
+    padding: 36px 10px;
+
+    color: var(--color-muted);
+    text-align: center;
+}
+
+/* Mobile */
+@media (max-width: 680px) {
+    .other-user-page .post-list.my-posts.history-section {
+        padding: 18px;
+    }
+
+    .other-user-page .history-section .history-meta-box {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .other-user-page .history-section .user-post-title {
+        white-space: normal;
+    }
+
+    .other-user-page .history-section .history-item-time {
+        justify-self: start;
+    }
+
+    .other-user-page .history-section .history-floating-tooltip {
+        display: none;
+    }
+}
+
 /* --- Utility Classes --- */
 .hidden {
     display: none !important;

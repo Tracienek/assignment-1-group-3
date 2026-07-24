@@ -11,7 +11,7 @@
         />
     </head>
 
-    <body class="user-layout">
+    <body class="user-layout other-user-page">
         <div class="main-layout">
             <!-- Back to forum -->
             <a href="{{ url_for('forum') }}" class="back-link">
@@ -62,13 +62,6 @@
                                     {% endif %}
                                 </div>
                             </div>
-
-                            <a
-                                href="{{ url_for('edit_post', post_id=post.id) }}"
-                                class="edit-btn"
-                            >
-                                Edit
-                            </a>
                         </div>
 
                         {% else %}

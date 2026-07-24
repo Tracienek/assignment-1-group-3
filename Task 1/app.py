@@ -1,7 +1,7 @@
 import os, uuid
 from datetime import datetime, timezone, timedelta
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 from google.cloud import datastore, storage
 
 # Initialize Flask application
@@ -455,19 +455,18 @@ def user_page():
         username_error=username_error,
     )
 
-@app.route("/<user_id>", methods=["GET"])
+
+
+@app.route("/users/<user_id>", methods=["GET"])
 @login_required
-def user_page(user_id):
-    user = get_user_by_id(user_id)
+def other_user(user_id):
+    profile_user = get_user_by_id(user_id)
 
-    current_user = get_user_by_id(session["user_id"])
-    
-    if current_user == user:
+    if profile_user is None:
+        abort(404)
+
+    if profile_user["id"] == session["user_id"]:
         return redirect(url_for("user_page"))
-
-    error = None
-    username_error = None
-
 
     raw_posts = get_posts_by_user(user_id)
     posts = []
@@ -479,12 +478,9 @@ def user_page(user_id):
 
     return render_template(
         "other_user.html",
-        user=user,
+        user=profile_user,
         posts=posts,
-        error=error,
-        username_error=username_error,
     )
-
 
 @app.route("/logout")
 def logout():
