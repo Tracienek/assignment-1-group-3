@@ -296,6 +296,7 @@ def forum():
         post_data["user_name"] = (
             author["user_name"] if author else post_data.get("user_name")
         )
+        post_data["user_id"] = author["id"] if author else post_data.get("user_id")
         posts.append(post_data)
 
     return render_template("forum.html", user=current_user, posts=posts, error=error)
@@ -453,6 +454,37 @@ def user_page():
         error=error,
         username_error=username_error,
     )
+
+@app.route("/<user_id>", methods=["GET"])
+@login_required
+def user_page(user_id):
+    user = get_user_by_id(user_id)
+
+    current_user = get_user_by_id(session["user_id"])
+    
+    if current_user == user:
+        return redirect(url_for("user_page"))
+
+    error = None
+    username_error = None
+
+
+    raw_posts = get_posts_by_user(user_id)
+    posts = []
+
+    for post_entity in raw_posts:
+        post_data = dict(post_entity)
+        post_data["id"] = post_entity.key.id
+        posts.append(post_data)
+
+    return render_template(
+        "other_user.html",
+        user=user,
+        posts=posts,
+        error=error,
+        username_error=username_error,
+    )
+
 
 @app.route("/logout")
 def logout():

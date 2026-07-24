@@ -164,7 +164,9 @@
                             alt="user avatar"
                         />
                         <div class="post-header-meta">
-                            <strong>{{ post.user_name }}</strong>
+                            <a href="{{ url_for('other_user', user_id=post.user_id) }}">
+                                <strong>{{ post.user_name }}</strong>
+                            </a>
                             <span class="timestamp">
                                 {{ post.created_at | vn_datetime }}
                             </span>
